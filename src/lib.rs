@@ -8,11 +8,10 @@ use sp_runtime::{RuntimeDebug, Vec};
 use sp_storage::StateVersion;
 use sp_trie::{LayoutV0, LayoutV1, TrieConfiguration};
 use core::hash::Hasher as StdHasher;
-use std::iter::Peekable;
-use codec::{Encode, MaxEncodedLen};
+use codec::{Encode};
 use log;
 use plonky2::field::goldilocks_field::GoldilocksField;
-use plonky2::field::types::{Field, PrimeField64};
+use plonky2::field::types::{Field};
 use plonky2::hash::poseidon::PoseidonHash;
 use plonky2::plonk::config::{GenericHashOut, Hasher as PlonkyHasher};
 #[cfg(feature = "serde")]
@@ -63,7 +62,7 @@ fn poseidon_hash(x: &[u8]) -> H256 {
         field_elements.push(field_element);
     }
 
-    println!("field_elements: {:?}", field_elements);
+    log::debug!("field_elements: {:?}", field_elements);
 
     if x.len() == 0 {
         log::info!("PoseidonHasher::hash EMPTY INPUT");
@@ -71,10 +70,9 @@ fn poseidon_hash(x: &[u8]) -> H256 {
     }
 
     let hash = PoseidonHash::hash_no_pad(&field_elements);
-    println!("poseidonHasher::hash : {:?}", hash);
+    log::debug!("poseidonHasher::hash : {:?}", hash);
 
     let h256 = H256::from_slice(&*hash.to_bytes());
-    // println!("poseidonHasher::hash H256: {:?}", h256);
     log::debug!("hash output: {:?}", h256);
 
     h256
