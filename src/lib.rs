@@ -17,7 +17,6 @@ use plonky2::hash::poseidon::PoseidonHash;
 use plonky2::plonk::config::{GenericHashOut, Hasher as PlonkyHasher};
 #[cfg(feature = "serde")]
 use sp_runtime::{Deserialize, Serialize};
-use hex;
 
 #[derive(Default)]
 pub struct PoseidonStdHasher(Vec<u8>);
@@ -118,6 +117,7 @@ impl Hash for PoseidonHasher {
 mod tests {
     use plonky2::field::types::Field64;
     use super::*;
+    use hex;
 
     #[test]
     fn test_empty_input() {
