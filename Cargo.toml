@@ -1,6 +1,6 @@
 [package]
 name = "poseidon-resonance"
-version = "0.1.0"
+version = "0.2.0"
 license = "MIT-0"
 authors = ["Resonance Network Developers <hello@resonancenetwork.io>"]
 homepage = "https://resonancenetwork.io"
@@ -17,6 +17,7 @@ sp-trie = { version = "38.0.0", default-features = false }
 codec = { version = "3.6.12", default-features = false, package = "parity-scale-codec" }
 serde = { version = "1.0.217", default-features = false, optional = true }
 plonky2 = { git="https://github.com/Resonance-Network/plonky2", default-features = false, features = ["no_random"] }
+hex = "0.4.3"
 
 [features]
 default = ["std"]

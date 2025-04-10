@@ -1652,8 +1652,9 @@ dependencies = [
 
 [[package]]
 name = "poseidon-resonance"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
+ "hex",
  "log",
  "parity-scale-codec",
  "plonky2",

@@ -8,15 +8,16 @@ use sp_runtime::{RuntimeDebug, Vec};
 use sp_storage::StateVersion;
 use sp_trie::{LayoutV0, LayoutV1, TrieConfiguration};
 use core::hash::Hasher as StdHasher;
-use codec::Encode;
+use std::iter::Peekable;
+use codec::{Encode, MaxEncodedLen};
 use log;
 use plonky2::field::goldilocks_field::GoldilocksField;
 use plonky2::field::types::{Field, PrimeField64};
 use plonky2::hash::poseidon::PoseidonHash;
-use plonky2::plonk::config::{Hasher as PlonkyHasher};
+use plonky2::plonk::config::{GenericHashOut, Hasher as PlonkyHasher};
 #[cfg(feature = "serde")]
 use sp_runtime::{Deserialize, Serialize};
-
+use hex;
 
 #[derive(Default)]
 pub struct PoseidonStdHasher(Vec<u8>);
@@ -49,7 +50,8 @@ impl Hasher for PoseidonHasher {
 
 fn poseidon_hash(x: &[u8]) -> H256 {
     // We don't want to exceed the scalar field modulus, so we only take 7 bytes at a time
-    const BYTES_PER_ELEMENT: usize = 7;
+    const BYTES_PER_ELEMENT: usize = 8;
+    // const BYTES_PER_ELEMENT: usize = 7;
 
     let mut field_elements: Vec<GoldilocksField> = Vec::new();
     for chunk in x.chunks(BYTES_PER_ELEMENT) {
@@ -57,23 +59,23 @@ fn poseidon_hash(x: &[u8]) -> H256 {
         bytes[..chunk.len()].copy_from_slice(chunk);
         // Convert the chunk to a field element
         let value = u64::from_le_bytes(bytes);
-        let field_element = GoldilocksField::from_canonical_u64(value);
+        let field_element = GoldilocksField::from_noncanonical_u64(value);
+        // let field_element = GoldilocksField::from_canonical_u64(value);
         field_elements.push(field_element);
     }
+
+    println!("field_elements: {:?}", field_elements);
 
     if x.len() == 0 {
         log::info!("PoseidonHasher::hash EMPTY INPUT");
         field_elements.push(GoldilocksField::ZERO);
     }
 
-    let hash = PoseidonHash::hash_pad(&field_elements);
-    let mut bytes = [0u8; 32];
-    for (i, element) in hash.elements.iter().enumerate() {
-        let element_bytes = element.to_canonical_u64().to_le_bytes();
-        bytes[i * 8..(i + 1) * 8].copy_from_slice(&element_bytes);
-    }
+    let hash = PoseidonHash::hash_no_pad(&field_elements);
+    println!("poseidonHasher::hash : {:?}", hash);
 
-    let h256 = H256::from_slice(bytes.as_slice());
+    let h256 = H256::from_slice(&*hash.to_bytes());
+    // println!("poseidonHasher::hash H256: {:?}", h256);
     log::debug!("hash output: {:?}", h256);
 
     h256
@@ -92,7 +94,7 @@ impl Hash for PoseidonHasher {
     }
 
     fn ordered_trie_root(input: Vec<Vec<u8>>, state_version: StateVersion) -> Self::Output {
-        log::info!("PoseidonHasher::ordered_trie_root input={:?}", input);
+        log::info!("PoseidonHasher::ordered_trie_root input={:?} version={:?}", input, state_version);
         let res = match state_version {
             StateVersion::V0 => LayoutV0::<PoseidonHasher>::ordered_trie_root(input),
             StateVersion::V1 => LayoutV1::<PoseidonHasher>::ordered_trie_root(input),
@@ -102,7 +104,7 @@ impl Hash for PoseidonHasher {
     }
 
     fn trie_root(input: Vec<(Vec<u8>, Vec<u8>)>, version: StateVersion) -> Self::Output {
-        log::info!("PoseidonHasher::trie_root input={:?}", input);
+        log::info!("PoseidonHasher::trie_root input={:?} version={:?}", input, version);
         let res = match version {
             StateVersion::V0 => LayoutV0::<PoseidonHasher>::trie_root(input),
             StateVersion::V1 => LayoutV1::<PoseidonHasher>::trie_root(input),
@@ -114,6 +116,7 @@ impl Hash for PoseidonHasher {
 }
 #[cfg(test)]
 mod tests {
+    use plonky2::field::types::Field64;
     use super::*;
 
     #[test]
@@ -197,6 +200,43 @@ mod tests {
                 "Input size {} should produce 32-byte H256",
                 size
             );
+        }
+    }
+
+    #[test]
+    fn test_big_preimage() {
+        for overflow in 1..=200 {
+            let preimage = GoldilocksField::ORDER + overflow;
+            let hash = <PoseidonHasher as Hasher>::hash(preimage.to_le_bytes().as_ref());
+        }
+    }
+
+    #[test]
+    fn test_circuit_preimage() {
+        let preimage = hex::decode("afd8e7530b95ee5ebab950c9a0c62fae1e80463687b3982233028e914f8ec7cc");
+        let hash = <PoseidonHasher as Hasher>::hash(&*preimage.unwrap());
+        let hash2 = <PoseidonHasher as Hasher>::hash(hash.as_bytes());
+    }
+
+    #[test]
+    fn test_random_inputs() {
+        let hex_strings = [
+            "a3f8",
+            "1b7e9d",
+            "4c2a6f81",
+            "e5d30b9a",
+            "1a4f7c2e9b0d8356",
+            "3e8d2a7f5c1b09e4d6f7a2c8",
+            "7b3e9a1f4c8d2e6b0a5f9d3c",
+            "1a4f7c2e9b0d83561a4f7c2e9b0d83561a4f7c2e9b0d83561a4f7c2e9b0d8356",
+            "e5d30b9a4c2a6f81e5d30b9a4c2a6f81e5d30b9a4c2a6f81e5d30b9a4c2a6f81",
+        ];
+
+        for hex_string in hex_strings.iter() {
+            let preimage = hex::decode(hex_string).unwrap();
+            println!("input: {}", hex_string);
+            let hash = <PoseidonHasher as Hasher>::hash(&preimage);
+            let hash2 = <PoseidonHasher as Hasher>::hash(&hash.as_bytes());
         }
     }
 
