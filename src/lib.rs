@@ -17,6 +17,9 @@ use plonky2::plonk::config::{GenericHashOut, Hasher as PlonkyHasher};
 #[cfg(feature = "serde")]
 use sp_runtime::{Deserialize, Serialize};
 
+/// The minimum number of field elements to allocate for the preimage.
+pub const MIN_FIELD_ELEMENT_PREIMAGE_LEN: usize = 73;
+
 #[derive(Default)]
 pub struct PoseidonStdHasher(Vec<u8>);
 
@@ -67,6 +70,12 @@ fn poseidon_hash(x: &[u8]) -> H256 {
     if x.len() == 0 {
         log::info!("PoseidonHasher::hash EMPTY INPUT");
         field_elements.push(GoldilocksField::ZERO);
+    }
+
+    // Workaround to support variable-length input in circuit. We need to pad the preimage in the
+    // same way as the circuit to ensure consistent hashes.
+    if field_elements.len() < MIN_FIELD_ELEMENT_PREIMAGE_LEN {
+        field_elements.resize(MIN_FIELD_ELEMENT_PREIMAGE_LEN, GoldilocksField::ZERO);
     }
 
     let hash = PoseidonHash::hash_no_pad(&field_elements);
