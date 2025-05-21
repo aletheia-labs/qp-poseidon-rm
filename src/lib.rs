@@ -11,7 +11,7 @@ use core::hash::Hasher as StdHasher;
 use codec::{Encode};
 use log;
 use plonky2::field::goldilocks_field::GoldilocksField;
-use plonky2::field::types::{Field};
+use plonky2::field::types::{Field, PrimeField64};
 use plonky2::hash::poseidon::PoseidonHash;
 use plonky2::plonk::config::{GenericHashOut, Hasher as PlonkyHasher};
 #[cfg(feature = "serde")]
@@ -25,7 +25,7 @@ pub struct PoseidonStdHasher(Vec<u8>);
 
 impl StdHasher for PoseidonStdHasher {
     fn finish(&self) -> u64 {
-        let hash = poseidon_hash(self.0.as_slice()).0;
+        let hash = PoseidonHasher::hash_padded(self.0.as_slice());
         u64::from_le_bytes(hash[0..8].try_into().unwrap())
     }
 
@@ -44,54 +44,41 @@ impl Hasher for PoseidonHasher {
     const LENGTH: usize = 32;
 
     fn hash(x: &[u8]) -> H256 {
-        poseidon_hash(x)
+        H256::from_slice(&Self::hash_padded(x))
     }
 }
 
 
-fn poseidon_hash(x: &[u8]) -> H256 {
-    // We don't want to exceed the scalar field modulus, so we only take 7 bytes at a time
-    const BYTES_PER_ELEMENT: usize = 8;
-    // const BYTES_PER_ELEMENT: usize = 7;
 
-    let mut field_elements: Vec<GoldilocksField> = Vec::new();
-    for chunk in x.chunks(BYTES_PER_ELEMENT) {
-        let mut bytes = [0u8; 8];
-        bytes[..chunk.len()].copy_from_slice(chunk);
-        // Convert the chunk to a field element
-        let value = u64::from_le_bytes(bytes);
-        let field_element = GoldilocksField::from_noncanonical_u64(value);
-        // let field_element = GoldilocksField::from_canonical_u64(value);
-        field_elements.push(field_element);
+impl PoseidonHasher {
+    pub fn hash_padded_felts(mut x: Vec<GoldilocksField>) -> Vec<u8> {
+        log::debug!("poseidon_hash_felts x: {:?}", x);
+
+        // Workaround to support variable-length input in circuit. We need to pad the preimage in the
+        // same way as the circuit to ensure consistent hashes.
+        if x.len() < MIN_FIELD_ELEMENT_PREIMAGE_LEN {
+            x.resize(MIN_FIELD_ELEMENT_PREIMAGE_LEN, GoldilocksField::ZERO);
+        }
+
+        PoseidonHash::hash_no_pad(&x).to_bytes()
     }
 
-    log::debug!("field_elements: {:?}", field_elements);
-
-    if x.len() == 0 {
-        log::info!("PoseidonHasher::hash EMPTY INPUT");
-        field_elements.push(GoldilocksField::ZERO);
+    pub fn hash_padded(x: &[u8]) -> Vec<u8> {
+        log::debug!("poseidon_hash x: {:?}", x);
+        Self::hash_padded_felts(bytes_to_felts(x))
     }
 
-    // Workaround to support variable-length input in circuit. We need to pad the preimage in the
-    // same way as the circuit to ensure consistent hashes.
-    if field_elements.len() < MIN_FIELD_ELEMENT_PREIMAGE_LEN {
-        field_elements.resize(MIN_FIELD_ELEMENT_PREIMAGE_LEN, GoldilocksField::ZERO);
+    pub fn hash_no_pad(x: Vec<GoldilocksField>) -> Vec<u8> {
+        PoseidonHash::hash_no_pad(&x).to_bytes()
     }
-
-    let hash = PoseidonHash::hash_no_pad(&field_elements);
-    log::debug!("poseidonHasher::hash : {:?}", hash);
-
-    let h256 = H256::from_slice(&*hash.to_bytes());
-    log::debug!("hash output: {:?}", h256);
-
-    h256
 }
+
 
 impl Hash for PoseidonHasher {
     type Output = H256;
 
     fn hash(s: &[u8]) -> Self::Output {
-        poseidon_hash(s)
+        H256::from_slice(&Self::hash_padded(s))
     }
 
     /// Produce the hash of some codec-encodable value.
@@ -120,6 +107,51 @@ impl Hash for PoseidonHasher {
     }
 
 }
+
+pub fn bytes_to_felts(input: &[u8]) -> Vec<GoldilocksField> {
+    log::debug!("bytes_to_felts input: {:?}", input);
+
+    const BYTES_PER_ELEMENT: usize = 8;
+
+    let mut field_elements: Vec<GoldilocksField> = Vec::new();
+    for chunk in input.chunks(BYTES_PER_ELEMENT) {
+        let mut bytes = [0u8; 8];
+        bytes[..chunk.len()].copy_from_slice(chunk);
+        // Convert the chunk to a field element.
+        let value = u64::from_le_bytes(bytes);
+        let field_element = GoldilocksField::from_noncanonical_u64(value);
+        field_elements.push(field_element);
+    }
+
+    field_elements
+}
+
+pub fn felts_to_bytes(input: &[GoldilocksField]) -> Vec<u8> {
+    let mut bytes: Vec<u8> = Vec::new();
+
+    for field_element in input {
+        let value = field_element.to_noncanonical_u64();
+        let value_bytes = value.to_le_bytes();
+        bytes.extend_from_slice(&value_bytes);
+    }
+
+    bytes
+}
+
+pub fn string_to_felt(
+    input: &str,
+) -> GoldilocksField {
+    // Convert string to UTF-8 bytes
+    let bytes = input.as_bytes();
+
+    let mut arr = [0u8; 8];
+    arr[..bytes.len()].copy_from_slice(bytes);
+
+    let num = u64::from_le_bytes(arr);
+    GoldilocksField::from_noncanonical_u64(num)
+}
+
+
 #[cfg(test)]
 mod tests {
     use plonky2::field::types::Field64;
