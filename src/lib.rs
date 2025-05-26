@@ -8,7 +8,7 @@ use sp_runtime::{RuntimeDebug, Vec};
 use sp_storage::StateVersion;
 use sp_trie::{LayoutV0, LayoutV1, TrieConfiguration};
 use core::hash::Hasher as StdHasher;
-use codec::{Encode};
+use codec::{Decode, Encode};
 use log;
 use plonky2::field::goldilocks_field::GoldilocksField;
 use plonky2::field::types::{Field, PrimeField64};
@@ -49,8 +49,8 @@ impl Hasher for PoseidonHasher {
 }
 
 
-
 impl PoseidonHasher {
+
     pub fn hash_padded_felts(mut x: Vec<GoldilocksField>) -> Vec<u8> {
         log::debug!("poseidon_hash_felts x: {:?}", x);
 
@@ -70,6 +70,25 @@ impl PoseidonHasher {
 
     pub fn hash_no_pad(x: Vec<GoldilocksField>) -> Vec<u8> {
         PoseidonHash::hash_no_pad(&x).to_bytes()
+    }
+
+
+    // This function should only be used to compute the quantus storage key for Transfer Proofs
+    // It breaks up the bytes input in a specific way that mimics how our zk-circuit does it
+    pub fn hash_storage(x: &[u8]) -> [u8; 32] {
+        const EXPECTED_STORAGE_PREIMAGE_LEN: usize = 4 + 32 + 32 + 16;
+        debug_assert!(x.len() == Self::EXPECTED_STORAGE_PREIMAGE_LEN, "Input must be exactly 84 bytes");
+        let mut felts = Vec::with_capacity(Self::EXPECTED_STORAGE_PREIMAGE_LEN);
+        type AccountId = [u8; 32];
+        let mut y = x;
+        let (nonce, from_account, to_account, amount): (u32, AccountId, AccountId, u128) =
+            Decode::decode(&mut y).expect("already asserted input length. qed");
+        felts.push(GoldilocksField::from_canonical_u32(nonce));
+        felts.extend(bytes_to_felts(&from_account));
+        felts.extend(bytes_to_felts(&to_account));
+        felts.extend(u128_to_felts(amount));
+        let hash = PoseidonHasher::hash_no_pad(felts);
+        hash.as_slice()[0..32].try_into().expect("already asserted input length. qed")
     }
 }
 
@@ -107,6 +126,16 @@ impl Hash for PoseidonHasher {
     }
 
 }
+
+pub fn u128_to_felts(num: u128) -> Vec<GoldilocksField> {
+    let mut amount_felts: Vec<GoldilocksField> = Vec::with_capacity(2);
+    let amount_high = GoldilocksField::from_noncanonical_u64((num >> 64) as u64);
+    let amount_low = GoldilocksField::from_noncanonical_u64(num as u64);
+    amount_felts.push(amount_high);
+    amount_felts.push(amount_low);
+    amount_felts
+}
+
 
 pub fn bytes_to_felts(input: &[u8]) -> Vec<GoldilocksField> {
     log::debug!("bytes_to_felts input: {:?}", input);
