@@ -77,8 +77,8 @@ impl PoseidonHasher {
     // It breaks up the bytes input in a specific way that mimics how our zk-circuit does it
     pub fn hash_storage(x: &[u8]) -> [u8; 32] {
         const EXPECTED_STORAGE_PREIMAGE_LEN: usize = 4 + 32 + 32 + 16;
-        debug_assert!(x.len() == Self::EXPECTED_STORAGE_PREIMAGE_LEN, "Input must be exactly 84 bytes");
-        let mut felts = Vec::with_capacity(Self::EXPECTED_STORAGE_PREIMAGE_LEN);
+        debug_assert!(x.len() == EXPECTED_STORAGE_PREIMAGE_LEN, "Input must be exactly 84 bytes");
+        let mut felts = Vec::with_capacity(EXPECTED_STORAGE_PREIMAGE_LEN);
         type AccountId = [u8; 32];
         let mut y = x;
         let (nonce, from_account, to_account, amount): (u32, AccountId, AccountId, u128) =
