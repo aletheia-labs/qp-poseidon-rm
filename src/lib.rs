@@ -8,7 +8,7 @@ use sp_runtime::{RuntimeDebug, Vec};
 use sp_storage::StateVersion;
 use sp_trie::{LayoutV0, LayoutV1, TrieConfiguration};
 use core::hash::Hasher as StdHasher;
-use codec::{Encode};
+use codec::{Decode, Encode};
 use log;
 use plonky2::field::goldilocks_field::GoldilocksField;
 use plonky2::field::types::{Field, PrimeField64};
@@ -73,39 +73,20 @@ impl PoseidonHasher {
     }
 
     const EXPECTED_STORAGE_PREIMAGE_LEN: usize = 4 + 32 + 32 + 16;
-    
+
     // This function should only be used to compute the quantus storage key for Transfer Proofs
     // It breaks up the bytes input in a specific way that mimics how our zk-circuit does it
     pub fn hash_storage(x: &[u8]) -> [u8; 32] {
-        // TODO: probably shouldn't be an assert
-        assert_eq!(x.len(), Self::EXPECTED_STORAGE_PREIMAGE_LEN);
+        debug_assert!(x.len() == Self::EXPECTED_STORAGE_PREIMAGE_LEN, "Input must be exactly 84 bytes");
         let mut felts = Vec::with_capacity(Self::EXPECTED_STORAGE_PREIMAGE_LEN);
-
-        // Extract nonce (u32, 4 bytes)
-        let nonce_bytes: [u8; 4] = x[0..4]
-            .try_into()
-            .unwrap();
-        let nonce = u32::from_le_bytes(nonce_bytes); // Use from_be_bytes for big-endian
+        type AccountId = [u8; 32];
+        let mut y = x;
+        let (nonce, from_account, to_account, amount): (u32, AccountId, AccountId, u128) =
+            Decode::decode(&mut y).expect("already asserted input length. qed");
         felts.push(GoldilocksField::from_canonical_u32(nonce));
-
-        // Extract account_id (32 bytes)
-        let from_account: [u8; 32] = x[4..36]
-            .try_into()
-            .unwrap();
         felts.extend(bytes_to_felts(&from_account));
-
-        // Extract account_id2 (32 bytes)
-        let to_account: [u8; 32] = x[36..68]
-            .try_into()
-            .unwrap();
         felts.extend(bytes_to_felts(&to_account));
-
-        // Extract balance (u128, 16 bytes)
-        let balance_bytes: [u8; 16] = x[68..84]
-            .try_into()
-            .unwrap();
-        let balance = u128::from_le_bytes(balance_bytes); // Use from_be_bytes for big-endian
-        felts.extend(u128_to_felts(balance));
+        felts.extend(u128_to_felts(amount));
         let hash = PoseidonHasher::hash_no_pad(felts);
         hash.as_slice()[0..32].try_into().unwrap()
     }
