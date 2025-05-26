@@ -88,7 +88,7 @@ impl PoseidonHasher {
         felts.extend(bytes_to_felts(&to_account));
         felts.extend(u128_to_felts(amount));
         let hash = PoseidonHasher::hash_no_pad(felts);
-        hash.as_slice()[0..32].try_into().unwrap()
+        hash.as_slice()[0..32].try_into().expect("already asserted input length. qed")
     }
 }
 
