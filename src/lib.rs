@@ -72,11 +72,11 @@ impl PoseidonHasher {
         PoseidonHash::hash_no_pad(&x).to_bytes()
     }
 
-    const EXPECTED_STORAGE_PREIMAGE_LEN: usize = 4 + 32 + 32 + 16;
 
     // This function should only be used to compute the quantus storage key for Transfer Proofs
     // It breaks up the bytes input in a specific way that mimics how our zk-circuit does it
     pub fn hash_storage(x: &[u8]) -> [u8; 32] {
+        const EXPECTED_STORAGE_PREIMAGE_LEN: usize = 4 + 32 + 32 + 16;
         debug_assert!(x.len() == Self::EXPECTED_STORAGE_PREIMAGE_LEN, "Input must be exactly 84 bytes");
         let mut felts = Vec::with_capacity(Self::EXPECTED_STORAGE_PREIMAGE_LEN);
         type AccountId = [u8; 32];
