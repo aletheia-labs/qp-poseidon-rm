@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use core::hash::Hasher as StdHasher;
 use log;
 use plonky2::field::goldilocks_field::GoldilocksField;
@@ -72,13 +72,16 @@ impl PoseidonHasher {
 
     // This function should only be used to compute the quantus storage key for Transfer Proofs
     // It breaks up the bytes input in a specific way that mimics how our zk-circuit does it
-    pub fn hash_storage<AccountId: Decode + Encode>(x: &[u8]) -> [u8; 32] {
-        const EXPECTED_STORAGE_PREIMAGE_LEN: usize = 4 + 32 + 32 + 16;
+    pub fn hash_storage<AccountId: Decode + Encode + MaxEncodedLen>(x: &[u8]) -> [u8; 32] {
+        let expected_storage_len = u32::max_encoded_len()
+            + AccountId::max_encoded_len()
+            + AccountId::max_encoded_len()
+            + u128::max_encoded_len();
         debug_assert!(
-            x.len() == EXPECTED_STORAGE_PREIMAGE_LEN,
+            x.len() == expected_storage_len,
             "Input must be exactly 84 bytes"
         );
-        let mut felts = Vec::with_capacity(EXPECTED_STORAGE_PREIMAGE_LEN);
+        let mut felts = Vec::with_capacity(expected_storage_len);
         let mut y = x;
         let (nonce, from_account, to_account, amount): (u32, AccountId, AccountId, u128) =
             Decode::decode(&mut y).expect("already asserted input length. qed");
