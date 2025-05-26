@@ -1,21 +1,21 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use scale_info::TypeInfo;
-use sp_runtime::traits::Hash;
-use sp_core::Hasher;
-use sp_core::H256;
-use sp_runtime::{RuntimeDebug, Vec};
-use sp_storage::StateVersion;
-use sp_trie::{LayoutV0, LayoutV1, TrieConfiguration};
+use codec::{Decode, Encode, MaxEncodedLen};
 use core::hash::Hasher as StdHasher;
-use codec::{Decode, Encode};
 use log;
 use plonky2::field::goldilocks_field::GoldilocksField;
 use plonky2::field::types::{Field, PrimeField64};
 use plonky2::hash::poseidon::PoseidonHash;
 use plonky2::plonk::config::{GenericHashOut, Hasher as PlonkyHasher};
+use scale_info::TypeInfo;
+use sp_core::Hasher;
+use sp_core::H256;
+use sp_runtime::traits::Hash;
 #[cfg(feature = "serde")]
 use sp_runtime::{Deserialize, Serialize};
+use sp_runtime::{RuntimeDebug, Vec};
+use sp_storage::StateVersion;
+use sp_trie::{LayoutV0, LayoutV1, TrieConfiguration};
 
 /// The minimum number of field elements to allocate for the preimage.
 pub const MIN_FIELD_ELEMENT_PREIMAGE_LEN: usize = 73;
@@ -48,9 +48,7 @@ impl Hasher for PoseidonHasher {
     }
 }
 
-
 impl PoseidonHasher {
-
     pub fn hash_padded_felts(mut x: Vec<GoldilocksField>) -> Vec<u8> {
         log::debug!("poseidon_hash_felts x: {:?}", x);
 
@@ -72,26 +70,31 @@ impl PoseidonHasher {
         PoseidonHash::hash_no_pad(&x).to_bytes()
     }
 
-
     // This function should only be used to compute the quantus storage key for Transfer Proofs
     // It breaks up the bytes input in a specific way that mimics how our zk-circuit does it
-    pub fn hash_storage(x: &[u8]) -> [u8; 32] {
-        const EXPECTED_STORAGE_PREIMAGE_LEN: usize = 4 + 32 + 32 + 16;
-        debug_assert!(x.len() == EXPECTED_STORAGE_PREIMAGE_LEN, "Input must be exactly 84 bytes");
-        let mut felts = Vec::with_capacity(EXPECTED_STORAGE_PREIMAGE_LEN);
-        type AccountId = [u8; 32];
+    pub fn hash_storage<AccountId: Decode + Encode + MaxEncodedLen>(x: &[u8]) -> [u8; 32] {
+        let expected_storage_len = u32::max_encoded_len()
+            + AccountId::max_encoded_len()
+            + AccountId::max_encoded_len()
+            + u128::max_encoded_len();
+        debug_assert!(
+            x.len() == expected_storage_len,
+            "Input must be exactly 84 bytes"
+        );
+        let mut felts = Vec::with_capacity(expected_storage_len);
         let mut y = x;
         let (nonce, from_account, to_account, amount): (u32, AccountId, AccountId, u128) =
             Decode::decode(&mut y).expect("already asserted input length. qed");
         felts.push(GoldilocksField::from_canonical_u32(nonce));
-        felts.extend(bytes_to_felts(&from_account));
-        felts.extend(bytes_to_felts(&to_account));
+        felts.extend(bytes_to_felts(&from_account.encode()));
+        felts.extend(bytes_to_felts(&to_account.encode()));
         felts.extend(u128_to_felts(amount));
         let hash = PoseidonHasher::hash_no_pad(felts);
-        hash.as_slice()[0..32].try_into().expect("already asserted input length. qed")
+        hash.as_slice()[0..32]
+            .try_into()
+            .expect("already asserted input length. qed")
     }
 }
-
 
 impl Hash for PoseidonHasher {
     type Output = H256;
@@ -106,7 +109,11 @@ impl Hash for PoseidonHasher {
     }
 
     fn ordered_trie_root(input: Vec<Vec<u8>>, state_version: StateVersion) -> Self::Output {
-        log::info!("PoseidonHasher::ordered_trie_root input={:?} version={:?}", input, state_version);
+        log::info!(
+            "PoseidonHasher::ordered_trie_root input={:?} version={:?}",
+            input,
+            state_version
+        );
         let res = match state_version {
             StateVersion::V0 => LayoutV0::<PoseidonHasher>::ordered_trie_root(input),
             StateVersion::V1 => LayoutV1::<PoseidonHasher>::ordered_trie_root(input),
@@ -116,7 +123,11 @@ impl Hash for PoseidonHasher {
     }
 
     fn trie_root(input: Vec<(Vec<u8>, Vec<u8>)>, version: StateVersion) -> Self::Output {
-        log::info!("PoseidonHasher::trie_root input={:?} version={:?}", input, version);
+        log::info!(
+            "PoseidonHasher::trie_root input={:?} version={:?}",
+            input,
+            version
+        );
         let res = match version {
             StateVersion::V0 => LayoutV0::<PoseidonHasher>::trie_root(input),
             StateVersion::V1 => LayoutV1::<PoseidonHasher>::trie_root(input),
@@ -124,7 +135,6 @@ impl Hash for PoseidonHasher {
         log::info!("PoseidonHasher::trie_root res={:?}", res);
         res
     }
-
 }
 
 pub fn u128_to_felts(num: u128) -> Vec<GoldilocksField> {
@@ -135,7 +145,6 @@ pub fn u128_to_felts(num: u128) -> Vec<GoldilocksField> {
     amount_felts.push(amount_low);
     amount_felts
 }
-
 
 pub fn bytes_to_felts(input: &[u8]) -> Vec<GoldilocksField> {
     log::debug!("bytes_to_felts input: {:?}", input);
@@ -167,9 +176,7 @@ pub fn felts_to_bytes(input: &[GoldilocksField]) -> Vec<u8> {
     bytes
 }
 
-pub fn string_to_felt(
-    input: &str,
-) -> GoldilocksField {
+pub fn string_to_felt(input: &str) -> GoldilocksField {
     // Convert string to UTF-8 bytes
     let bytes = input.as_bytes();
 
@@ -180,12 +187,11 @@ pub fn string_to_felt(
     GoldilocksField::from_noncanonical_u64(num)
 }
 
-
 #[cfg(test)]
 mod tests {
-    use plonky2::field::types::Field64;
     use super::*;
     use hex;
+    use plonky2::field::types::Field64;
 
     #[test]
     fn test_empty_input() {
@@ -248,16 +254,18 @@ mod tests {
         let input2 = [6u8; 32];
         let hash1 = <PoseidonHasher as Hasher>::hash(&input1);
         let hash2 = <PoseidonHasher as Hasher>::hash(&input2);
-        assert_ne!(hash1, hash2, "Different inputs should produce different hashes");
+        assert_ne!(
+            hash1, hash2,
+            "Different inputs should produce different hashes"
+        );
     }
 
     #[test]
     fn test_poseidon_hash_input_sizes() {
-
         // Test inputs from 1 to 128 bytes
         for size in 1..=128 {
             // Create a predictable input: repeating byte value based on size
-            let input: Vec<u8> = (0..size).map(|i| (i*i % 256) as u8).collect();
+            let input: Vec<u8> = (0..size).map(|i| (i * i % 256) as u8).collect();
             let hash = <PoseidonHasher as Hasher>::hash(&input);
             println!("Size {}: {:?}", size, hash);
 
@@ -281,7 +289,8 @@ mod tests {
 
     #[test]
     fn test_circuit_preimage() {
-        let preimage = hex::decode("afd8e7530b95ee5ebab950c9a0c62fae1e80463687b3982233028e914f8ec7cc");
+        let preimage =
+            hex::decode("afd8e7530b95ee5ebab950c9a0c62fae1e80463687b3982233028e914f8ec7cc");
         let hash = <PoseidonHasher as Hasher>::hash(&*preimage.unwrap());
         let hash2 = <PoseidonHasher as Hasher>::hash(hash.as_bytes());
     }
