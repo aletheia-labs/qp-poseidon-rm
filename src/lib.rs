@@ -194,13 +194,13 @@ mod tests {
     use hex;
     use plonky2::field::types::Field64;
 
-    fn init_logger() {
+    #[ctor::ctor]
+    fn init_logger_global() {
         let _ = env_logger::builder().is_test(true).try_init();
     }
 
     #[test]
     fn test_empty_input() {
-        init_logger();
         let result = <PoseidonHasher as Hasher>::hash(&[]);
         assert_eq!(result.0.len(), 32);
     }
