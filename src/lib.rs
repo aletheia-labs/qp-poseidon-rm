@@ -190,11 +190,17 @@ pub fn string_to_felt(input: &str) -> GoldilocksField {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use env_logger;
     use hex;
     use plonky2::field::types::Field64;
 
+    fn init_logger() {
+        let _ = env_logger::builder().is_test(true).try_init();
+    }
+
     #[test]
     fn test_empty_input() {
+        init_logger();
         let result = <PoseidonHasher as Hasher>::hash(&[]);
         assert_eq!(result.0.len(), 32);
     }
