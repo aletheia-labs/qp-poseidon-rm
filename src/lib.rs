@@ -50,7 +50,7 @@ impl Hasher for PoseidonHasher {
 
 impl PoseidonHasher {
     pub fn hash_padded_felts(mut x: Vec<GoldilocksField>) -> Vec<u8> {
-        log::debug!("poseidon_hash_felts x: {:?}", x);
+        log::debug!(target: "poseidon", "poseidon_hash_felts x: {:?}", x);
 
         // Workaround to support variable-length input in circuit. We need to pad the preimage in the
         // same way as the circuit to ensure consistent hashes.
@@ -62,7 +62,7 @@ impl PoseidonHasher {
     }
 
     pub fn hash_padded(x: &[u8]) -> Vec<u8> {
-        log::debug!("poseidon_hash x: {:?}", x);
+        log::debug!(target: "poseidon", "poseidon_hash x: {:?}", x);
         Self::hash_padded_felts(bytes_to_felts(x))
     }
 
@@ -109,7 +109,7 @@ impl Hash for PoseidonHasher {
     }
 
     fn ordered_trie_root(input: Vec<Vec<u8>>, state_version: StateVersion) -> Self::Output {
-        log::info!(
+        log::debug!(target: "poseidon",
             "PoseidonHasher::ordered_trie_root input={:?} version={:?}",
             input,
             state_version
@@ -118,12 +118,12 @@ impl Hash for PoseidonHasher {
             StateVersion::V0 => LayoutV0::<PoseidonHasher>::ordered_trie_root(input),
             StateVersion::V1 => LayoutV1::<PoseidonHasher>::ordered_trie_root(input),
         };
-        log::info!("PoseidonHasher::ordered_trie_root res={:?}", res);
+        log::debug!(target: "poseidon", "PoseidonHasher::ordered_trie_root res={:?}", res);
         res
     }
 
     fn trie_root(input: Vec<(Vec<u8>, Vec<u8>)>, version: StateVersion) -> Self::Output {
-        log::info!(
+        log::debug!(target: "poseidon",
             "PoseidonHasher::trie_root input={:?} version={:?}",
             input,
             version
@@ -132,7 +132,7 @@ impl Hash for PoseidonHasher {
             StateVersion::V0 => LayoutV0::<PoseidonHasher>::trie_root(input),
             StateVersion::V1 => LayoutV1::<PoseidonHasher>::trie_root(input),
         };
-        log::info!("PoseidonHasher::trie_root res={:?}", res);
+        log::debug!(target: "poseidon", "PoseidonHasher::trie_root res={:?}", res);
         res
     }
 }
@@ -147,7 +147,7 @@ pub fn u128_to_felts(num: u128) -> Vec<GoldilocksField> {
 }
 
 pub fn bytes_to_felts(input: &[u8]) -> Vec<GoldilocksField> {
-    log::debug!("bytes_to_felts input: {:?}", input);
+    log::debug!(target: "poseidon", "bytes_to_felts input: {:?}", input);
 
     const BYTES_PER_ELEMENT: usize = 8;
 
