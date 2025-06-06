@@ -16,10 +16,14 @@ sp-storage = { version = "22.0.0", default-features = false }
 sp-trie = { version = "38.0.0", default-features = false }
 codec = { version = "3.6.12", default-features = false, package = "parity-scale-codec" }
 serde = { version = "1.0.217", default-features = false, optional = true }
-plonky2 = { git="https://github.com/Resonance-Network/plonky2", default-features = false, features = ["no_random"] }
+plonky2 = { git = "https://github.com/Resonance-Network/plonky2", default-features = false, features = [
+    "no_random",
+] }
 
 [dev-dependencies]
 hex = "0.4.3"
+env_logger = "0.11.8"
+ctor = "0.4.2"
 
 [features]
 default = ["std"]
@@ -38,5 +42,5 @@ serde = [
     "sp-core/serde",
     "sp-storage/serde",
     "codec/serde",
-    "scale-info/serde"
+    "scale-info/serde",
 ]
