@@ -1717,7 +1717,7 @@ dependencies = [
 [[package]]
 name = "plonky2"
 version = "1.0.2"
-source = "git+https://github.com/Resonance-Network/plonky2#80a10007d8359b54843acb826097561859a6b621"
+source = "git+https://github.com/Quantus-Network/plonky2#80a10007d8359b54843acb826097561859a6b621"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1738,7 +1738,7 @@ dependencies = [
 [[package]]
 name = "plonky2_field"
 version = "1.0.0"
-source = "git+https://github.com/Resonance-Network/plonky2#80a10007d8359b54843acb826097561859a6b621"
+source = "git+https://github.com/Quantus-Network/plonky2#80a10007d8359b54843acb826097561859a6b621"
 dependencies = [
  "anyhow",
  "itertools 0.11.0",
@@ -1752,12 +1752,12 @@ dependencies = [
 [[package]]
 name = "plonky2_maybe_rayon"
 version = "1.0.0"
-source = "git+https://github.com/Resonance-Network/plonky2#80a10007d8359b54843acb826097561859a6b621"
+source = "git+https://github.com/Quantus-Network/plonky2#80a10007d8359b54843acb826097561859a6b621"
 
 [[package]]
 name = "plonky2_util"
 version = "1.0.0"
-source = "git+https://github.com/Resonance-Network/plonky2#80a10007d8359b54843acb826097561859a6b621"
+source = "git+https://github.com/Quantus-Network/plonky2#80a10007d8359b54843acb826097561859a6b621"
 
 [[package]]
 name = "polkavm-common"
