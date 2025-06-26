@@ -74,12 +74,15 @@ impl PoseidonHasher {
     // It breaks up the bytes input in a specific way that mimics how our zk-circuit does it
     pub fn hash_storage<AccountId: Decode + Encode + MaxEncodedLen>(x: &[u8]) -> [u8; 32] {
         let expected_storage_len = u32::max_encoded_len()
+            + u32::max_encoded_len()
             + AccountId::max_encoded_len()
             + AccountId::max_encoded_len()
             + u128::max_encoded_len();
         debug_assert!(
             x.len() == expected_storage_len,
-            "Input must be exactly 84 bytes"
+            "Input must be exactly {} bytes, but was {}",
+            expected_storage_len,
+            x.len()
         );
         let mut felts = Vec::with_capacity(expected_storage_len);
         let mut y = x;
