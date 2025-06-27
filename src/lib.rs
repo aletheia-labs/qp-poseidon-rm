@@ -73,8 +73,7 @@ impl PoseidonHasher {
     // This function should only be used to compute the quantus storage key for Transfer Proofs
     // It breaks up the bytes input in a specific way that mimics how our zk-circuit does it
     pub fn hash_storage<AccountId: Decode + Encode + MaxEncodedLen>(x: &[u8]) -> [u8; 32] {
-        let expected_storage_len = u32::max_encoded_len()
-            + u32::max_encoded_len()
+        let expected_storage_len = u64::max_encoded_len()
             + AccountId::max_encoded_len()
             + AccountId::max_encoded_len()
             + u128::max_encoded_len();
@@ -86,9 +85,9 @@ impl PoseidonHasher {
         );
         let mut felts = Vec::with_capacity(expected_storage_len);
         let mut y = x;
-        let (nonce, from_account, to_account, amount): (u32, AccountId, AccountId, u128) =
+        let (transfer_count, from_account, to_account, amount): (u64, AccountId, AccountId, u128) =
             Decode::decode(&mut y).expect("already asserted input length. qed");
-        felts.push(GoldilocksField::from_canonical_u32(nonce));
+        felts.push(GoldilocksField::from_noncanonical_u64(transfer_count));
         felts.extend(bytes_to_felts(&from_account.encode()));
         felts.extend(bytes_to_felts(&to_account.encode()));
         felts.extend(u128_to_felts(amount));
