@@ -291,7 +291,7 @@ mod tests {
     fn test_big_preimage() {
         for overflow in 1..=200 {
             let preimage = GoldilocksField::ORDER + overflow;
-            let hash = <PoseidonHasher as Hasher>::hash(preimage.to_le_bytes().as_ref());
+            let _hash = <PoseidonHasher as Hasher>::hash(preimage.to_le_bytes().as_ref());
         }
     }
 
@@ -300,7 +300,7 @@ mod tests {
         let preimage =
             hex::decode("afd8e7530b95ee5ebab950c9a0c62fae1e80463687b3982233028e914f8ec7cc");
         let hash = <PoseidonHasher as Hasher>::hash(&*preimage.unwrap());
-        let hash2 = <PoseidonHasher as Hasher>::hash(hash.as_bytes());
+        let _hash = <PoseidonHasher as Hasher>::hash(hash.as_bytes());
     }
 
     #[test]
@@ -321,7 +321,46 @@ mod tests {
             let preimage = hex::decode(hex_string).unwrap();
             println!("input: {}", hex_string);
             let hash = <PoseidonHasher as Hasher>::hash(&preimage);
-            let hash2 = <PoseidonHasher as Hasher>::hash(&hash.as_bytes());
+            let _hash2 = <PoseidonHasher as Hasher>::hash(&hash.as_bytes());
+        }
+    }
+
+    #[test]
+    fn test_known_value_hashes() {
+        let vectors = [
+            (
+                vec![],
+                "fdf0715f178bfb2381d3804961bda8c679990d6318ff53f7a6475e1bef1982ca",
+            ),
+            (
+                vec![0u8],
+                "fdf0715f178bfb2381d3804961bda8c679990d6318ff53f7a6475e1bef1982ca",
+            ),
+            (
+                vec![1u8, 2, 3, 4, 5, 6, 7, 8],
+                "4e7207e51d9c4fda0e05c7e34efa9defea76df8e0c79a240608bca5c1a587038",
+            ),
+            (
+                vec![255u8; 32],
+                "f17b88e7eb676dff0fcc3f282cec9190e78706b5300918983dd91a11baa5e819",
+            ),
+            (
+                b"hello world".to_vec(),
+                "4b9a9943e8f02150f5527d66c34a0d2ec8c2b421e94408f8aa917104143b2bd1",
+            ),
+            (
+                (0u8..32).collect::<Vec<u8>>(),
+                "2303d1a7c96b8eb1ef24d845a2bf4445365f47f839e7d486a58bd4666329b4e2",
+            ),
+        ];
+        for (input, expected_hex) in vectors.iter() {
+            let hash = <PoseidonHasher as Hasher>::hash(input);
+            assert_eq!(
+                hex::encode(hash.as_bytes()),
+                *expected_hex,
+                "input: 0x{}",
+                hex::encode(input)
+            );
         }
     }
 
