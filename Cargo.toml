@@ -10,11 +10,11 @@ edition = "2021"
 [dependencies]
 log = { version = "0.4.22", default-features = false }
 scale-info = { version = "2.11.1", default-features = false }
-sp-runtime = { version = "40.1.0", default-features = false }
-sp-core = { version = "35.0.0", default-features = false }
+sp-runtime = { version = "42.0.0", default-features = false }
+sp-core = { version = "37.0.0", default-features = false }
 sp-storage = { version = "22.0.0", default-features = false }
-sp-trie = { version = "38.0.0", default-features = false }
-codec = { version = "3.6.12", default-features = false, package = "parity-scale-codec" }
+sp-trie = { version = "40.0.0", default-features = false }
+codec = { version = "3.7.5", default-features = false, package = "parity-scale-codec" }
 serde = { version = "1.0.217", default-features = false, optional = true }
 plonky2 = { git = "https://github.com/Quantus-Network/plonky2", default-features = false, features = [
     "no_random",
