@@ -2,7 +2,6 @@
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use core::hash::Hasher as StdHasher;
-use log;
 use plonky2::{
 	field::{
 		goldilocks_field::GoldilocksField,
