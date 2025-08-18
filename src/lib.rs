@@ -350,11 +350,4 @@ mod tests {
 			);
 		}
 	}
-
-	// #[test]
-	// fn test_empty_blake2() {
-	//     let result = <BlakeTwo256 as Hasher>::hash(&[]);
-	//     println!("hash output: {:?}", result);
-	//     assert_eq!(result.0.len(), 32);
-	// }
 }
