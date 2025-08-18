@@ -17,7 +17,7 @@ sp-trie = { version = "40.0.0", default-features = false }
 codec = { version = "3.7.5", default-features = false, package = "parity-scale-codec" }
 serde = { version = "1.0.217", default-features = false, optional = true }
 plonky2 = { git = "https://github.com/Quantus-Network/plonky2", default-features = false, features = [
-    "no_random",
+	"no_random",
 ] }
 
 [dev-dependencies]
@@ -28,19 +28,19 @@ ctor = "0.4.2"
 [features]
 default = ["std"]
 std = [
-    "codec/std",
-    "serde/std",
-    "sp-core/std",
-    "sp-runtime/std",
-    "sp-storage/std",
-    "scale-info/std",
+	"codec/std",
+	"scale-info/std",
+	"serde/std",
+	"sp-core/std",
+	"sp-runtime/std",
+	"sp-storage/std",
 ]
 
 serde = [
-    "dep:serde",
-    "sp-runtime/serde",
-    "sp-core/serde",
-    "sp-storage/serde",
-    "codec/serde",
-    "scale-info/serde",
+	"codec/serde",
+	"dep:serde",
+	"scale-info/serde",
+	"sp-core/serde",
+	"sp-runtime/serde",
+	"sp-storage/serde",
 ]
