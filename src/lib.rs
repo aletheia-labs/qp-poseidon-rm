@@ -19,7 +19,7 @@ use sp_storage::StateVersion;
 use sp_trie::{LayoutV0, LayoutV1, TrieConfiguration};
 
 /// The minimum number of field elements to allocate for the preimage.
-pub const MIN_FIELD_ELEMENT_PREIMAGE_LEN: usize = 73;
+pub const MIN_FIELD_ELEMENT_PREIMAGE_LEN: usize = 94;
 
 #[derive(Default)]
 pub struct PoseidonStdHasher(Vec<u8>);
