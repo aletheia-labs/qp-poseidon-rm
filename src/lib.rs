@@ -51,7 +51,7 @@ impl Hasher for PoseidonHasher {
 
 impl PoseidonHasher {
 	pub fn hash_padded_felts(mut x: Vec<GoldilocksField>) -> Vec<u8> {
-		log::debug!(target: "poseidon", "poseidon_hash_felts x: {:?}", x);
+		log::debug!(target: "poseidon", "poseidon_hash_felts x: {x:?}");
 
 		// Workaround to support variable-length input in circuit. We need to pad the preimage in
 		// the same way as the circuit to ensure consistent hashes.
@@ -63,7 +63,7 @@ impl PoseidonHasher {
 	}
 
 	pub fn hash_padded(x: &[u8]) -> Vec<u8> {
-		log::debug!(target: "poseidon", "poseidon_hash x: {:?}", x);
+		log::debug!(target: "poseidon", "poseidon_hash x: {x:?}");
 		Self::hash_padded_felts(bytes_to_felts(x))
 	}
 
@@ -111,29 +111,25 @@ impl Hash for PoseidonHasher {
 
 	fn ordered_trie_root(input: Vec<Vec<u8>>, state_version: StateVersion) -> Self::Output {
 		log::debug!(target: "poseidon",
-			"PoseidonHasher::ordered_trie_root input={:?} version={:?}",
-			input,
-			state_version
+			"PoseidonHasher::ordered_trie_root input={input:?} version={state_version:?}",
 		);
 		let res = match state_version {
 			StateVersion::V0 => LayoutV0::<PoseidonHasher>::ordered_trie_root(input),
 			StateVersion::V1 => LayoutV1::<PoseidonHasher>::ordered_trie_root(input),
 		};
-		log::debug!(target: "poseidon", "PoseidonHasher::ordered_trie_root res={:?}", res);
+		log::debug!(target: "poseidon", "PoseidonHasher::ordered_trie_root res={res:?}");
 		res
 	}
 
 	fn trie_root(input: Vec<(Vec<u8>, Vec<u8>)>, version: StateVersion) -> Self::Output {
 		log::debug!(target: "poseidon",
-			"PoseidonHasher::trie_root input={:?} version={:?}",
-			input,
-			version
+			"PoseidonHasher::trie_root input={input:?} version={version:?}"
 		);
 		let res = match version {
 			StateVersion::V0 => LayoutV0::<PoseidonHasher>::trie_root(input),
 			StateVersion::V1 => LayoutV1::<PoseidonHasher>::trie_root(input),
 		};
-		log::debug!(target: "poseidon", "PoseidonHasher::trie_root res={:?}", res);
+		log::debug!(target: "poseidon", "PoseidonHasher::trie_root res={res:?}");
 		res
 	}
 }
@@ -148,7 +144,7 @@ pub fn u128_to_felts(num: u128) -> Vec<GoldilocksField> {
 }
 
 pub fn bytes_to_felts(input: &[u8]) -> Vec<GoldilocksField> {
-	log::debug!(target: "poseidon", "bytes_to_felts input: {:?}", input);
+	log::debug!(target: "poseidon", "bytes_to_felts input: {input:?}");
 
 	const BYTES_PER_ELEMENT: usize = 8;
 
@@ -324,20 +320,20 @@ mod tests {
 	#[test]
 	fn test_known_value_hashes() {
 		let vectors = [
-			(vec![], "fdf0715f178bfb2381d3804961bda8c679990d6318ff53f7a6475e1bef1982ca"),
-			(vec![0u8], "fdf0715f178bfb2381d3804961bda8c679990d6318ff53f7a6475e1bef1982ca"),
+			(vec![], "3296f1cf081beeefbcae3ed69023361fb3693581e0c1dd4f7b3c497f349352ba"),
+			(vec![0u8], "3296f1cf081beeefbcae3ed69023361fb3693581e0c1dd4f7b3c497f349352ba"),
 			(
 				vec![1u8, 2, 3, 4, 5, 6, 7, 8],
-				"4e7207e51d9c4fda0e05c7e34efa9defea76df8e0c79a240608bca5c1a587038",
+				"0a56f5068c667a8bbb843c76b44990a1abefa050527a46e8fab9340277d9fde2",
 			),
-			(vec![255u8; 32], "f17b88e7eb676dff0fcc3f282cec9190e78706b5300918983dd91a11baa5e819"),
+			(vec![255u8; 32], "f109e7cb4b06034659305c2bea7888d2fb4df5409f11a96e3f6b53a116ffb42b"),
 			(
 				b"hello world".to_vec(),
-				"4b9a9943e8f02150f5527d66c34a0d2ec8c2b421e94408f8aa917104143b2bd1",
+				"6a0ff40754427fe9928c6b1b39b97b89e362350f6bfd8fdd4b0d0ddb6b712a7f",
 			),
 			(
 				(0u8..32).collect::<Vec<u8>>(),
-				"2303d1a7c96b8eb1ef24d845a2bf4445365f47f839e7d486a58bd4666329b4e2",
+				"a3e4e2b7f91e6022eb3e840672c0b75c78f61193583d5a6bc310ab5e16b20fb6",
 			),
 		];
 		for (input, expected_hex) in vectors.iter() {
@@ -350,11 +346,4 @@ mod tests {
 			);
 		}
 	}
-
-	// #[test]
-	// fn test_empty_blake2() {
-	//     let result = <BlakeTwo256 as Hasher>::hash(&[]);
-	//     println!("hash output: {:?}", result);
-	//     assert_eq!(result.0.len(), 32);
-	// }
 }
