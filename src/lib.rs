@@ -147,10 +147,11 @@ pub fn u128_to_felts(num: u128) -> Vec<GoldilocksField> {
 }
 
 pub fn u64_to_felts(num: u64) -> Vec<GoldilocksField> {
-	vec![
+	[
 		GoldilocksField::from_noncanonical_u64((num >> 32) & BIT_32_LIMB_MASK),
 		GoldilocksField::from_noncanonical_u64(num & BIT_32_LIMB_MASK),
 	]
+	.to_vec()
 }
 
 pub fn injective_bytes_to_felts(input: &[u8]) -> Vec<GoldilocksField> {
