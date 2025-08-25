@@ -190,27 +190,51 @@ pub fn digest_bytes_to_felts(input: &[u8]) -> Vec<GoldilocksField> {
 	field_elements
 }
 
-pub fn felts_to_bytes(input: &[GoldilocksField]) -> Vec<u8> {
+pub fn digest_felts_to_bytes(input: &[GoldilocksField]) -> Vec<u8> {
+	const DIGEST_BYTES_PER_ELEMENT: usize = 8;
+	let mut bytes = [0u8; 32];
+
+	for (i, field_element) in input.iter().enumerate() {
+		let value = field_element.to_noncanonical_u64();
+		let value_bytes = value.to_le_bytes();
+		let start_index = i * DIGEST_BYTES_PER_ELEMENT;
+		let end_index = start_index + DIGEST_BYTES_PER_ELEMENT;
+		bytes[start_index..end_index].copy_from_slice(&value_bytes);
+	}
+
+	bytes.to_vec()
+}
+
+pub fn injective_felts_to_bytes(input: &[GoldilocksField]) -> Vec<u8> {
+	const BYTES_PER_ELEMENT: usize = 4;
 	let mut bytes: Vec<u8> = Vec::new();
 
 	for field_element in input {
 		let value = field_element.to_noncanonical_u64();
-		let value_bytes = value.to_le_bytes();
-		bytes.extend_from_slice(&value_bytes);
+		let value_bytes = &value.to_le_bytes()[..BYTES_PER_ELEMENT];
+		bytes.extend_from_slice(value_bytes);
 	}
 
 	bytes
 }
 
-pub fn string_to_felt(input: &str) -> GoldilocksField {
+pub fn injective_string_to_felt(input: &str) -> Vec<GoldilocksField> {
 	// Convert string to UTF-8 bytes
 	let bytes = input.as_bytes();
 
-	let mut arr = [0u8; 8];
-	arr[..bytes.len()].copy_from_slice(bytes);
+	assert!(bytes.len() <= 8, "String must be at most 8 bytes long");
 
-	let num = u64::from_le_bytes(arr);
-	GoldilocksField::from_noncanonical_u64(num)
+	let mut padded = [0u8; 8];
+	padded[..bytes.len()].copy_from_slice(bytes);
+
+	let first = u32::from_le_bytes(padded[0..4].try_into().unwrap());
+	let second = u32::from_le_bytes(padded[4..8].try_into().unwrap());
+
+	[
+		GoldilocksField::from_noncanonical_u64(first as u64),
+		GoldilocksField::from_noncanonical_u64(second as u64),
+	]
+	.to_vec()
 }
 
 #[cfg(test)]
