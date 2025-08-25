@@ -218,7 +218,7 @@ pub fn injective_felts_to_bytes(input: &[GoldilocksField]) -> Vec<u8> {
 	bytes
 }
 
-pub fn injective_string_to_felt(input: &str) -> Vec<GoldilocksField> {
+pub fn injective_string_to_felts(input: &str) -> Vec<GoldilocksField> {
 	// Convert string to UTF-8 bytes
 	let bytes = input.as_bytes();
 
