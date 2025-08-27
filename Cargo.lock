@@ -2039,7 +2039,7 @@ dependencies = [
 [[package]]
 name = "plonky2"
 version = "1.0.2"
-source = "git+https://github.com/Quantus-Network/plonky2#0303f7ac940fa13f692157b3ed3ea21ffd711440"
+source = "git+https://github.com/Quantus-Network/plonky2#9c06fe53083dd1672951b6d5bc3aa03bde4d1a66"
 dependencies = [
  "ahash",
  "anyhow",
@@ -2060,12 +2060,13 @@ dependencies = [
 [[package]]
 name = "plonky2_field"
 version = "1.0.0"
-source = "git+https://github.com/Quantus-Network/plonky2#0303f7ac940fa13f692157b3ed3ea21ffd711440"
+source = "git+https://github.com/Quantus-Network/plonky2#9c06fe53083dd1672951b6d5bc3aa03bde4d1a66"
 dependencies = [
  "anyhow",
  "itertools 0.11.0",
  "num",
  "plonky2_util",
+ "rustc_version",
  "serde",
  "static_assertions",
  "unroll",
@@ -2074,12 +2075,12 @@ dependencies = [
 [[package]]
 name = "plonky2_maybe_rayon"
 version = "1.0.0"
-source = "git+https://github.com/Quantus-Network/plonky2#0303f7ac940fa13f692157b3ed3ea21ffd711440"
+source = "git+https://github.com/Quantus-Network/plonky2#9c06fe53083dd1672951b6d5bc3aa03bde4d1a66"
 
 [[package]]
 name = "plonky2_util"
 version = "1.0.0"
-source = "git+https://github.com/Quantus-Network/plonky2#0303f7ac940fa13f692157b3ed3ea21ffd711440"
+source = "git+https://github.com/Quantus-Network/plonky2#9c06fe53083dd1672951b6d5bc3aa03bde4d1a66"
 
 [[package]]
 name = "polkavm-common"
