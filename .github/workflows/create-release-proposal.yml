@@ -143,12 +143,12 @@ jobs:
           git checkout "$SOURCE_BRANCH"
           git checkout -b "$branch_name"
           
-          # Update al-poseidon version
+          # Update qp-poseidon version
           echo "Updating Cargo.toml to version: $new_cargo_version"
           sed -i -E "s/^version\s*=\s*\"[0-9a-zA-Z.-]+\"/version = \"$new_cargo_version\"/" Cargo.toml
 
           # Update Cargo.lock
-          cargo update --package al-poseidon
+          cargo update --package qp-poseidon
 
           # Commit changes
           git config user.name "${{ github.actor }}"

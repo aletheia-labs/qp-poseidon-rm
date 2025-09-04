@@ -1,4 +1,4 @@
-# al-poseidon
+# qp-poseidon
 
 A Poseidon hash implementation for the Substrate/Polkadot ecosystem using plonky2 field arithmetic.
 
@@ -20,13 +20,13 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-al-poseidon = "0.0.1"
+qp-poseidon = "0.0.1"
 ```
 
 ### Basic Hashing
 
 ```rust
-use al_poseidon::PoseidonHasher;
+use qp_poseidon::PoseidonHasher;
 use sp_core::Hasher;
 
 let data = b"hello world";
@@ -37,7 +37,7 @@ println!("Hash: {:?}", hash);
 ### As Substrate Hash Function
 
 ```rust
-use al_poseidon::PoseidonHasher;
+use qp_poseidon::PoseidonHasher;
 use sp_runtime::traits::Hash;
 
 let data = b"substrate data";
@@ -47,7 +47,7 @@ let hash = PoseidonHasher::hash(data);
 ### Field Element Operations
 
 ```rust
-use al_poseidon::{injective_bytes_to_felts, PoseidonHasher};
+use qp_poseidon::{injective_bytes_to_felts, PoseidonHasher};
 
 let data = b"some data";
 let field_elements = injective_bytes_to_felts(data);

@@ -143,7 +143,7 @@ jobs:
             --target main \
             $DRAFT_FLAG
 
-      - name: Publish al-poseidon to crates.io
+      - name: Publish qp-poseidon to crates.io
         run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }} --allow-dirty
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
