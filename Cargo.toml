@@ -1,11 +1,13 @@
 [package]
-name = "poseidon-resonance"
-version = "0.9.0"
+name = "al-poseidon"
+version = "0.0.1"
 license = "MIT-0"
-authors = ["Resonance Network Developers <hello@resonancenetwork.io>"]
-homepage = "https://resonancenetwork.io"
-repository = "https://github.com/resonance-network/poseidon-resonance#"
+authors = ["Quantus Network Developers <hello@quantus.com>"]
+homepage = "https://quantus.com"
+repository = "https://github.com/Quantus-Network/qp-resonance#"
 edition = "2021"
+keywords = ["FRI", "SNARK", "cryptography", "plonky2", "quantus-network"]
+categories = ["cryptography"]
 
 [dependencies]
 log = { version = "0.4.22", default-features = false }
