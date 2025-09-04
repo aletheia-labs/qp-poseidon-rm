@@ -2037,50 +2037,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "plonky2"
-version = "1.0.2"
-source = "git+https://github.com/Quantus-Network/plonky2#9c06fe53083dd1672951b6d5bc3aa03bde4d1a66"
-dependencies = [
- "ahash",
- "anyhow",
- "hashbrown 0.14.5",
- "itertools 0.11.0",
- "keccak-hash",
- "log",
- "num",
- "plonky2_field",
- "plonky2_maybe_rayon",
- "plonky2_util",
- "rand",
- "serde",
- "static_assertions",
- "unroll",
-]
-
-[[package]]
-name = "plonky2_field"
-version = "1.0.0"
-source = "git+https://github.com/Quantus-Network/plonky2#9c06fe53083dd1672951b6d5bc3aa03bde4d1a66"
-dependencies = [
- "anyhow",
- "itertools 0.11.0",
- "num",
- "plonky2_util",
- "rustc_version",
- "serde",
- "static_assertions",
- "unroll",
-]
-
-[[package]]
 name = "plonky2_maybe_rayon"
 version = "1.0.0"
-source = "git+https://github.com/Quantus-Network/plonky2#9c06fe53083dd1672951b6d5bc3aa03bde4d1a66"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e1e554181dc95243b8d9948ae7bae5759c7fb2502fed28f671f95ef38079406"
 
 [[package]]
 name = "plonky2_util"
 version = "1.0.0"
-source = "git+https://github.com/Quantus-Network/plonky2#9c06fe53083dd1672951b6d5bc3aa03bde4d1a66"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c32c137808ca984ab2458b612b7eb0462d853ee041a3136e83d54b96074c7610"
 
 [[package]]
 name = "polkavm-common"
@@ -2143,7 +2109,7 @@ dependencies = [
  "hex",
  "log",
  "parity-scale-codec",
- "plonky2",
+ "qp-plonky2",
  "scale-info",
  "serde",
  "sp-core",
@@ -2231,6 +2197,45 @@ dependencies = [
  "memchr",
  "parking_lot",
  "thiserror",
+]
+
+[[package]]
+name = "qp-plonky2"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ec837c755446048b155bfc7d7d955697143795a3f56f76de5e54c38bf6a5110"
+dependencies = [
+ "ahash",
+ "anyhow",
+ "hashbrown 0.14.5",
+ "itertools 0.11.0",
+ "keccak-hash",
+ "log",
+ "num",
+ "plonky2_maybe_rayon",
+ "plonky2_util",
+ "qp-plonky2-field",
+ "rand",
+ "serde",
+ "static_assertions",
+ "unroll",
+]
+
+[[package]]
+name = "qp-plonky2-field"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "164e15ef9e7faf721a8bcbb4b4ebe9e7f27dc915a336721a724d7e15ac6cb428"
+dependencies = [
+ "anyhow",
+ "itertools 0.11.0",
+ "num",
+ "plonky2_util",
+ "rand",
+ "rustc_version",
+ "serde",
+ "static_assertions",
+ "unroll",
 ]
 
 [[package]]
